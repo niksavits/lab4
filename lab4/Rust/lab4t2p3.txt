@@ -1,0 +1,42 @@
+use rand::prelude::*;
+
+fn main() {
+    const N: usize = 20; // Размер массива
+    let mut numbers = [0; N]; // Объявление массива
+
+    // Инициализация генератора случайных чисел
+    let mut rng = rand::thread_rng();
+
+    // Заполнение массива случайными числами из диапазона [100, 900]
+    for number in numbers.iter_mut() {
+        *number = rng.gen_range(100..=900);
+    }
+
+    // Сортировка массива по убыванию
+    numbers.sort_by(|a, b| b.cmp(a));
+
+    // Определение, сколько раз каждая цифра встречается в элементах массива
+    let mut digit_count = std::collections::HashMap::new(); // Счетчик цифр
+
+    for &number in numbers.iter() {
+        let mut num = number;
+        while num > 0 {
+            let digit = num % 10; // Получаем последнюю цифру числа
+            *digit_count.entry(digit).or_insert(0) += 1; // Увеличиваем счетчик для этой цифры
+            num /= 10; // Убираем последнюю цифру из числа
+        }
+    }
+
+    // Вывод элементов массива
+    println!("Отсортированный массив:");
+    for &elem in numbers.iter() {
+        print!("{} ", elem);
+    }
+    println!();
+
+    // Вывод количества встреч каждой цифры
+    println!("Количество встреч каждой цифры в отсортированном массиве:");
+    for (digit, count) in &digit_count {
+        println!("Цифра {}: {} раз", digit, count);
+    }
+}

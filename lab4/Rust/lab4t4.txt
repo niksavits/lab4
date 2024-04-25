@@ -1,0 +1,100 @@
+use rand::{random, Rng};
+
+// Функция для генерации случайного числа в диапазоне [min, max]
+fn get_random_number(min: i32, max: i32) -> i32 {
+    let mut rng = rand::thread_rng();
+    rng.gen_range(min..=max)
+}
+
+// Алгоритм 1: Всегда сотрудничает
+fn algorithm1(_round_number: i32, _self_choices: &[bool; 200], _enemy_choices: &[bool; 200]) -> bool {
+    true // Всегда сотрудничаем
+}
+
+// Алгоритм 2: Предает каждый 4-й раунд
+fn algorithm2(round_number: i32, _self_choices: &[bool; 200], _enemy_choices: &[bool; 200]) -> bool {
+    round_number % 4 != 0 // Предаем каждый 4-й раунд
+}
+
+// Алгоритм 3: Имитирует предыдущее действие противника
+fn algorithm3(round_number: i32, _self_choices: &[bool; 200], enemy_choices: &[bool; 200]) -> bool {
+    if round_number == 0 {
+        true // В первом раунде всегда сотрудничаем
+    } else {
+        enemy_choices[round_number as usize - 1] // Имитируем предыдущее действие противника
+    }
+}
+
+// Функция для запуска игры
+fn play_game(
+    algorithm1: fn(i32, &[bool; 200], &[bool; 200]) -> bool,
+    algorithm2: fn(i32, &[bool; 200], &[bool; 200]) -> bool,
+    algorithm3: fn(i32, &[bool; 200], &[bool; 200]) -> bool,
+) {
+    let num_rounds = get_random_number(100, 200); // Случайное количество раундов
+
+    let mut self_choices1 = [false; 200]; // Выборы первого алгоритма
+    let mut self_choices2 = [false; 200]; // Выборы второго алгоритма
+    let mut self_choices3 = [false; 200]; // Выборы третьего алгоритма
+
+    let mut enemy_choices1 = [false; 200]; // Выборы противника для первого алгоритма
+    let mut enemy_choices2 = [false; 200]; // Выборы противника для второго алгоритма
+    let mut enemy_choices3 = [false; 200]; // Выборы противника для третьего алгоритма
+
+    let mut score1 = 0; // Очки первого алгоритма
+    let mut score2 = 0; // Очки второго алгоритма
+    let mut score3 = 0; // Очки третьего алгоритма
+
+    for round in 0..num_rounds {
+        let choice1 = algorithm1(round, &self_choices1, &enemy_choices1);
+        let choice2 = algorithm2(round, &self_choices2, &enemy_choices2);
+        let choice3 = algorithm3(round, &self_choices3, &enemy_choices3);
+
+        self_choices1[round as usize] = choice1;
+        self_choices2[round as usize] = choice2;
+        self_choices3[round as usize] = choice3;
+
+        let enemy_choice1 = algorithm3(round, &enemy_choices1, &self_choices1);
+        let enemy_choice2 = algorithm3(round, &enemy_choices2, &self_choices2);
+        let enemy_choice3 = algorithm3(round, &enemy_choices3, &self_choices3);
+
+        enemy_choices1[round as usize] = enemy_choice1;
+        enemy_choices2[round as usize] = enemy_choice2;
+        enemy_choices3[round as usize] = enemy_choice3;
+
+        if choice1 && enemy_choice1 {
+            score1 += 24;
+        } else if !choice1 && enemy_choice1 {
+            score1 += 20;
+        } else if !choice1 && !enemy_choice1 {
+            score1 += 4;
+        }
+
+        if choice2 && enemy_choice2 {
+            score2 += 24;
+        } else if !choice2 && enemy_choice2 {
+            score2 += 20;
+        } else if !choice2 && !enemy_choice2 {
+            score2 += 4;
+        }
+
+        if choice3 && enemy_choice3 {
+            score3 += 24;
+        } else if !choice3 && enemy_choice3 {
+            score3 += 20;
+        } else if !choice3 && !enemy_choice3 {
+            score3 += 4;
+        }
+    }
+
+    println!("Результаты игры:");
+    println!("Алгоритм 1: {} очков", score1);
+    println!("Алгоритм 2: {} очков", score2);
+    println!("Алгоритм 3: {} очков", score3);
+}
+
+fn main() {
+    play_game(algorithm1, algorithm2, algorithm3);
+    play_game(algorithm1, algorithm2, algorithm3);
+    play_game(algorithm1, algorithm2, algorithm3);
+}

@@ -1,0 +1,90 @@
+use rand_distr::{Distribution, Normal};
+
+// Функция для вычисления критерия хи-квадрат
+fn chi_square_test(observed: &[i32; 100], expected: &[f64; 100]) -> f64 {
+    let mut chi_square = 0.0;
+    for i in 0..100 {
+        if expected[i] != 0.0 {
+            chi_square += (observed[i] as f64 - expected[i]).powi(2) / expected[i];
+        }
+    }
+    chi_square
+}
+
+// Функция для вычисления ожидаемых частот при нормальном распределении
+fn compute_expected(n: i32, mean: f64, stddev: f64) -> [f64; 100] {
+    let mut expected = [0.0; 100];
+    for i in 1..=100 {
+        let z = (i as f64 - mean) / stddev;
+        expected[i - 1] = n as f64 * (f64::exp(-z * z / 2.0) / (f64::sqrt(2.0 * std::f64::consts::PI) * stddev));
+    }
+    expected
+}
+
+fn main() {
+    const N1: i32 = 50; // Размер первого массива
+    const N2: i32 = 100; // Размер второго массива
+    const N3: i32 = 1000; // Размер третьего массива
+
+    let mut observed1 = [0; 100]; // Массив для хранения частот значений в первом массиве
+    let mut observed2 = [0; 100]; // Массив для хранения частот значений во втором массиве
+    let mut observed3 = [0; 100]; // Массив для хранения частот значений в третьем массиве
+
+    // Инициализация генератора случайных чисел
+    let mut rng = rand::thread_rng();
+
+    // Задание параметров нормального распределения
+    let mean = 50.5;
+    let stddev = f64::sqrt(1000.0 / 12.0);
+
+    // Заполнение массивов случайными числами
+    for _ in 0..N1 {
+        let distribution = Normal::new(mean, stddev).unwrap();
+        let random_number = distribution.sample(&mut rng).round() as i32;
+        if random_number >= 1 && random_number <= 100 {
+            observed1[(random_number - 1) as usize] += 1;
+        }
+    }
+
+    for _ in 0..N2 {
+        let distribution = Normal::new(mean, stddev).unwrap();
+        let random_number = distribution.sample(&mut rng).round() as i32;
+        if random_number >= 1 && random_number <= 100 {
+            observed2[(random_number - 1) as usize] += 1;
+        }
+    }
+
+    for _ in 0..N3 {
+        let distribution = Normal::new(mean, stddev).unwrap();
+        let random_number = distribution.sample(&mut rng).round() as i32;
+        if random_number >= 1 && random_number <= 100 {
+            observed3[(random_number - 1) as usize] += 1;
+        }
+    }
+
+    // Вычисление ожидаемых частот при нормальном распределении
+    let expected = compute_expected(N1 + N2 + N3, mean, stddev);
+
+    // Вычисление критерия хи-квадрат для каждого массива
+    let chi_square1 = chi_square_test(&observed1, &expected);
+    let chi_square2 = chi_square_test(&observed2, &expected);
+    let chi_square3 = chi_square_test(&observed3, &expected);
+
+    // Вывод результатов
+    println!("Результаты критерия хи-квадрат:");
+    println!("Массив размером 50: {}", if chi_square1 < 124.342 {
+        "Гипотеза о нормальном распределении принимается"
+    } else {
+        "Гипотеза о нормальном распределении отклоняется"
+    });
+    println!("Массив размером 100: {}", if chi_square2 < 132.245 {
+        "Гипотеза о нормальном распределении принимается"
+    } else {
+        "Гипотеза о нормальном распределении отклоняется"
+    });
+    println!("Массив размером 1000: {}", if chi_square3 < 138.993 {
+        "Гипотеза о нормальном распределении принимается"
+    } else {
+        "Гипотеза о нормальном распределении отклоняется"
+    });
+}
